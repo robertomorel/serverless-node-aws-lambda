@@ -1,0 +1,33 @@
+service: nodeless # NOTE: update this with your service name
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: sa-east-1
+  memorySize: 256 # Memória que será usada nas funções
+  iamRoleStatements: # Quais são as permissões das funções?
+    - Effect: Allow # Allow||Restrict
+      Action:
+        - s3:GetObject # Permitir que a função lambda possa ir no S3 e buscar informações do serviço
+        - s3:PutObject # Permitir que a função lambda salve arquivos no S3
+      Resource:
+        - "arn:aws:s3:::*" # Em qual bucket o usuário terá acesso? * -> Todos os buckets do S3
+
+functions:
+  optimize:
+    handler: optimize.handle
+    environment:
+      bucket: rocketnodeserverless # O nome do bucket que será utilizado para esta função
+    events: # Quais eventos vamos ouvir no S3 para disparar esta função
+      - s3: # Evento 1
+          bucket: rocketnodeserverless # Qual o bucket?
+          event: s3:ObjectCreated:* # Sempre que um objeto for criado (upload)
+          rules:
+            - prefix: uploads/ # Dispare sempre que algo for criado na pasta uploads/
+            - suffix: .jpg # Apenas em arquivos .jpg
+      - s3: # Evento 2
+          bucket: rocketnodeserverless # Qual o bucket?
+          event: s3:ObjectCreated:* # Sempre que um objeto for criado (upload)
+          rules:
+            - prefix: uploads/ # Dispare sempre que algo for criado na pasta uploads/
+            - suffix: .png # Apenas em arquivos .png
